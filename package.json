@@ -1,0 +1,101 @@
+{
+  "name": "binding-form",
+  "version": "1.0.0",
+  "engines": {
+    "node": "^8.9.1",
+    "npm": "^5.5.1"
+  },
+  "main": "dist/index.jsx",
+  "module": "dist/index.jsx",
+  "files": [
+    "dist/lib",
+    "dist/rules",
+    "dist/test",
+    "dist/createFormStore.js",
+    "dist/Field.js",
+    "dist/FieldSet.js",
+    "dist/Form.js",
+    "dist/index.js",
+    "dist/Field.jsx",
+    "dist/FieldSet.jsx",
+    "dist/Form.jsx",
+    "dist/index.jsx"
+  ],
+  "peersDependencies": {
+    "@pkfare/antd": "0.x || 1.x",
+    "prop-types": "15.x",
+    "react": "15.x",
+    "lodash": "4.x",
+    "mobx": "4.3.0",
+    "mobx-react": "5.1.2",
+    "nested-property": "0.0.7"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-flow-react-proptypes": "^24.0.1",
+    "babel-plugin-import": "^1.7.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-decorators-legacy": "^1.3.5",
+    "babel-plugin-transform-flow-comments": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-flow": "^6.23.0",
+    "eslint": "^4.19.1",
+    "eslint-plugin-flowtype": "^2.50.3",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^5.1.1",
+    "eslint-plugin-react": "^7.11.1",
+    "flow-bin": "^0.73.0",
+    "husky": "^0.14.3",
+    "less": "^2.7.3",
+    "less-loader": "^4.1.0",
+    "lint-staged": "^7.1.0",
+    "lodash": "~4.17.10",
+    "mobx": "^4.3.0",
+    "mobx-react": "^5.1.2",
+    "moment": "^2.22.2",
+    "nested-property": "0.0.7",
+    "prop-types": "^15.6.2",
+    "react": "~15.6.2",
+    "react-app-rewire-define-plugin": "^1.0.0",
+    "react-app-rewire-less-with-modules": "~0.0.3",
+    "react-app-rewired": "^1.5.2",
+    "react-dom": "^15.0.0",
+    "react-intl": "^2.4.0",
+    "react-scripts": "~1.1.4",
+    "stylelint": "^8.4.0",
+    "stylelint-config-sass-guidelines": "~3.1.0",
+    "stylelint-config-standard": "~17.0.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "git add"
+    ],
+    "*.{json}": [
+      "git add"
+    ],
+    "*.{css,less}": [
+      "stylelint --fix",
+      "git add"
+    ]
+  },
+  "scripts": {
+    "dev": "npm run start",
+    "start": "react-app-rewired start",
+    "build": "rm -rf ./dist && mkdir ./dist && cp -a ./src/* ./dist && babel src/ -d dist/",
+    "test": "react-app-rewired test --env=jsdom",
+    "eslint": "eslint --ext .js,.jsx,.json src/ --fix",
+    "stylelint": "stylelint \"src/**/*.{css,less}\"",
+    "lint": "npm run stylelint && npm run flow",
+    "lint-staged": "npm run lint-staged",
+    "precommit": "lint-staged",
+    "flow": "flow check",
+    "prepack": "npm run lint && npm run dist:prod",
+    "dist:task": "rm -rf ./dist && mkdir ./dist && cp -a ./src/* ./dist",
+    "dist:dev": "NODE_ENV=development npm run build",
+    "dist:prod": "NODE_ENV=production npm run build"
+  }
+}

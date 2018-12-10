@@ -1,0 +1,15 @@
+@height: 48px;
+
+body {
+  // 防止业务组件利用 body 定位
+  padding-top: @height;
+}
+
+.layout {
+  // no stuff
+}
+
+.content {
+  overflow: hidden; // BFC
+  padding: 30px;
+}

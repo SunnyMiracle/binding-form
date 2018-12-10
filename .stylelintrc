@@ -1,0 +1,38 @@
+{
+  "extends": [
+    "stylelint-config-standard",
+    "stylelint-config-sass-guidelines"
+  ],
+  "rules": {
+    "at-rule-no-unknown": null,
+    "block-closing-brace-empty-line-before": null,
+    "color-hex-case": null,
+    "color-hex-length": null,
+    "color-named": null,
+    "declaration-empty-line-before": null,
+    "declaration-property-value-blacklist": null,
+    "max-empty-lines": 2,
+    "max-nesting-depth": [8, {"ignore": ["blockless-at-rules"]}],
+    "rule-empty-line-before": [
+      "always-multi-line",
+      {
+        "except": ["after-single-line-comment", "first-nested"],
+        "ignore": ["after-comment", "inside-block"]
+      }
+    ],
+    "selector-class-pattern": "^[a-z][a-z0-9]*([A-Z][a-z0-9]*)*$|^[a-z][a-z0-9]*([-_]+[a-z0-9]+)*$",
+    "selector-list-comma-newline-after": "always-multi-line",
+    "selector-max-compound-selectors": null,
+    "selector-max-id": null,
+    "selector-no-qualifying-type": [true, {"ignore": ["attribute", "class"]}],
+    "selector-pseudo-class-no-unknown": [true, {"ignorePseudoClasses": ["global", "local"]}],
+
+    "order/properties-alphabetical-order": null,
+
+    "scss/at-import-partial-extension-blacklist": null,
+    "scss/at-mixin-pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+    "scss/dollar-variable-pattern": "^[a-z][a-z0-9]*([A-Z][a-z0-9]*)*$|^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+    "scss/percent-placeholder-pattern": "^[a-z][a-z0-9]*([A-Z][a-z0-9]*)*$",
+    "scss/selector-no-redundant-nesting-selector": null
+  }
+}
