@@ -43,6 +43,7 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-flow": "^6.23.0",
     "eslint": "^4.19.1",
+    "eslint-plugin-react": "^7.11.1",
     "flow-bin": "^0.73.0",
     "husky": "^0.14.3",
     "less": "^2.7.3",
@@ -61,7 +62,9 @@
     "react-dom": "^15.0.0",
     "react-intl": "^2.4.0",
     "react-scripts": "~1.1.4",
-    "stylelint": "^8.4.0"
+    "stylelint": "^8.4.0",
+    "stylelint-config-recommended": "^2.1.0",
+    "stylelint-config-standard": "^18.2.0"
   },
   "lint-staged": {
     "*.{js,jsx}": [
