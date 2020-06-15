@@ -3,7 +3,9 @@ An efficient form component, based on Mobx.
 
 # 基础 Form 组件
 
-基础 Form 组件，实现平台前端侧的整体表单逻辑。内部基于 mobx 和 antd Form 实现。
+基础 Form 组件，实现平台前端侧的整体表单逻辑。内部基于 mobx 和 antd Form 实现。无任何样式绑定，需要在实际项目中对样式进行自定义。
+
+组件内样式可以通过bindingForm为前缀的class来自定义，当前bindingForm这个前缀也是可以自定义的。
 
 <br/>
 
