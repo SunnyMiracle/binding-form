@@ -117,48 +117,42 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
   // 模拟接口，获取默认数据
   fetchInitData = () => {
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve({
-          firstName: 'jschen',
-          lastName: 'lu',
-          gender: 'male',
-          birth: moment(),
-          nationality: 'cn',
-          id_type: 'passport',
-          id_number: '130622199203125833',
-          idExpiryDate: moment().add(1, 'year'),
-        });
-        this.setState({
-          loading: false
-        });
-      }, 1000);
+      resolve({
+        firstName: 'jschen',
+        lastName: 'lu',
+        gender: 'male',
+        birth: moment(),
+        nationality: 'cn',
+        id_type: 'passport',
+        id_number: '130622199203125833',
+        idExpiryDate: moment().add(1, 'year'),
+      });
+      this.setState({
+        loading: false
+      });
     })
   }
 
   // 模拟接口获取人的相关信息
   fetchPassengerInfo = (key) => {
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve({
-          firstName: `firstName-${key}`,
-          lastName: `lastName-${key}`,
-          gender: 'male',
-          birth: moment().add(key, 'day'),
-          nationality: 'cn',
-          id_type: '',
-          id_number: '',
-          idExpiryDate: moment('2020-02-20')
-        })
-      }, 1000);
+      resolve({
+        firstName: `firstName-${key}`,
+        lastName: `lastName-${key}`,
+        gender: 'male',
+        birth: moment().add(key, 'day'),
+        nationality: 'cn',
+        id_type: '',
+        id_number: '',
+        idExpiryDate: moment('2020-02-20')
+      })
     });
   }
 
   // 模拟去获取对应的证件号
   fetchPassengerCode = (code) => {
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve(`${code} + 12345678`);
-      }, 1000);
+      resolve(`${code} + 12345678`);
     })
   }
 
@@ -175,7 +169,6 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
           {this.renderData()}
           <button onClick={() => { this.getNewPassenger(); }}>Add</button>
         </div>
-        
         <button type="submit">提交</button>
         <button onClick={this.clearFunction}>清空</button>
       </Form>
