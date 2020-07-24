@@ -1,36 +1,28 @@
 import * as React from 'react';
 import BindingForm from '../../index.jsx';
-import {observer} from "mobx-react/index";
+import {Input, Select, DatePicker} from 'antd';
 import Title from './title';
 import storeHelper from "../../lib/storeHelper";
 
 const Field = BindingForm.Field;
 const FieldSet = BindingForm.FieldSet;
 const baseRule = BindingForm.baseRule;
-// const storeHelper = BindingForm.storeHelper;
 
 
 // @observer
 export default class Info extends React.Component {
 
-  static propTypes = {
-    valueKeyPrefix: React.PropTypes.string.isRequired,
-    data: React.PropTypes.shape({}).isRequired,
-    formStore: React.PropTypes.shape({}).isRequired
-  };
-
-  componentDidMount() {
-    this.props.data.plus();
-  }
-
   render() {
     const valueKeyPrefix = this.props.valueKeyPrefix;
+    const idNumberIsVisible = (store, valueKey) => {
+      return storeHelper.get(store, `${valueKeyPrefix}.id_type`) === 'sfz';
+    };
     return (
       <div style={{marginTop: '100px'}}>
         <Title formStore={this.props.formStore} valueKey={`${valueKeyPrefix}.firstName`}/>-
         <Title formStore={this.props.formStore} valueKey={`${valueKeyPrefix}.lastName`}/>
         <FieldSet
-          rules={baseRule.basic.required('must', {})}
+          rules={baseRule.basic.required('必填项(FieldSet-1)', {})}
         >
           <Field
             label="姓"
@@ -38,7 +30,7 @@ export default class Info extends React.Component {
             required={true}
             rules={[baseRule.basic.required('必填项。', {validateStatus: 'warning'})]}
           >
-            <input placeholder="拼音或英文姓，例如，Ouyang" onBlur={() => {console.log('onBlur')}}/>
+            <Input placeholder="拼音或英文" onBlur={() => {console.log('onBlur')}}/>
           </Field>
           <Field
             label="名"
@@ -46,23 +38,38 @@ export default class Info extends React.Component {
             required={true}
             rules={[baseRule.basic.required('必填项。', {validateStatus: 'warning'})]}
           >
-            <input placeholder="拼音或英文名，例如，Xiaobai" onBlur={() => {console.log('onBlur')}}/>
+            <Input placeholder="拼音或英文" onBlur={() => {console.log('onBlur')}}/>
           </Field>
         </FieldSet>
         <FieldSet
-          rules={baseRule.basic.required('must', {})}
+          rules={baseRule.basic.required('必填项(FieldSet-2)', {})}
         >
+          <Field label="出生日期" valueKey={`${valueKeyPrefix}.birth`}>
+            <DatePicker/>
+          </Field>
+          <Field label="证件类型" valueKey={`${valueKeyPrefix}.id_type`}>
+            <Select>
+              <Select.Option value="sfz">sfz</Select.Option>
+              <Select.Option value="hz">hz</Select.Option>
+            </Select>
+          </Field>
           <Field
             label="证件号码"
             valueKey={`${valueKeyPrefix}.id_number`}
             required={true}
             rules={[baseRule.basic.verifyNumber('请输入数字！', {})]}
+            isVisible={idNumberIsVisible}
           >
-            <input/>
+            <Input/>
+          </Field>
+          <Field
+            label="证件过期日期"
+            valueKey={`${valueKeyPrefix}.idExpiryDate`}
+            isVisible={idNumberIsVisible}
+          >
+            <DatePicker/>
           </Field>
         </FieldSet>
-        <button onClick={() => { this.props.data.plus(); }}>Plus</button>
-        <input value={this.props.data.firstName} onChange={(event) => { this.props.data.firstName = event.target.value; }}/>
       </div>
     );
   }

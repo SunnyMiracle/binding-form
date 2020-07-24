@@ -5,30 +5,25 @@ import {observer} from "mobx-react";
 import moment from 'moment';
 import BindingForm from '../index.jsx';
 import Info from './components/info';
+import {Button} from "antd";
 
 const Form = BindingForm.Form;
-const Field = BindingForm.Field;
-const FieldSet = BindingForm.FieldSet;
-const baseRule = BindingForm.baseRule;
-// const storeHelper = BindingForm.storeHelper;
 const createFormStore = BindingForm.createFormStore;
 
 type PropType = {}
 
+// {
+//   firstName: '',
+//   lastName: '',
+//   gender: 'male',
+//   birth: null,
+//   nationality: 'cn',
+//   id_type: 'sfz', // hz
+//   id_number: '',
+//   idExpiryDate: null,
+// }
 const data = {
-  rawData: [{
-    firstName: 'kive',
-    lastName: 'xiaobai',
-    gender: 'male',
-    birth: moment('2020-02-20'),
-    nationality: 'cn',
-    id_type: '',
-    id_number: '',
-    idExpiryDate: moment('2020-02-20'),
-    plus: action(function() {
-      this.firstName = this.firstName + '_test';
-    })
-  }],
+  rawData: [],
   updatePassenger: action(function (data, index) {
     this.rawData[index] = {
       ...this.rawData[index],
@@ -67,7 +62,7 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
 
   getNewPassenger = () => {
     this.fetchPassengerInfo(this.formStore.rawData.length).then((passengerInfo) => {
-      this.fetchPassengerCode(passengerInfo.nationality).then((passengerCode) => {
+      this.fetchPassengerCode().then((passengerCode) => {
         this.formStore.addPassenger({
           ...passengerInfo,
           id_number: passengerCode
@@ -118,12 +113,12 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
   fetchInitData = () => {
     return new Promise((resolve, reject) => {
       resolve({
-        firstName: 'jschen',
+        firstName: 'qian',
         lastName: 'lu',
         gender: 'male',
         birth: moment(),
         nationality: 'cn',
-        id_type: 'passport',
+        id_type: 'sfz',
         id_number: '130622199203125833',
         idExpiryDate: moment().add(1, 'year'),
       });
@@ -137,12 +132,12 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
   fetchPassengerInfo = (key) => {
     return new Promise((resolve, reject) => {
       resolve({
-        firstName: `firstName-${key}`,
-        lastName: `lastName-${key}`,
-        gender: 'male',
+        firstName: `lucas`,
+        lastName: `ben`,
+        gender: 'female',
         birth: moment().add(key, 'day'),
         nationality: 'cn',
-        id_type: '',
+        id_type: 'hz',
         id_number: '',
         idExpiryDate: moment('2020-02-20')
       })
@@ -150,11 +145,11 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
   }
 
   // 模拟去获取对应的证件号
-  fetchPassengerCode = (code) => {
+  fetchPassengerCode = () => {
     return new Promise((resolve, reject) => {
-      resolve(`${code} + 12345678`);
+      resolve('130622199203125833');
     })
-  }
+  };
 
 
   render() {
@@ -167,10 +162,10 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
       >
         <div>
           {this.renderData()}
-          <button onClick={() => { this.getNewPassenger(); }}>Add</button>
+          <Button onClick={() => { this.getNewPassenger(); }}>Add</Button>
         </div>
-        <button type="submit">提交</button>
-        <button onClick={this.clearFunction}>清空</button>
+        <Button type="submit">提交</Button>
+        <Button onClick={this.clearFunction}>清空</Button>
       </Form>
     );
   }

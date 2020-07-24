@@ -10,6 +10,12 @@ module.exports = function override(config, env) {
   // TODO 业务站点不支持 less 加载图片，关闭此兼容方法
   // config.resolve.modules.push('./');
 
+  // supports antd
+  config = injectBabelPlugin(['import', {
+    libraryName: 'antd',
+    style: true
+  }], config);
+
   config = injectBabelPlugin('babel-plugin-transform-decorators-legacy', config);
 
   // supports css-module
