@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { observer } from 'mobx-react';
 import BindingForm from '../../index.jsx';
 import {Input, Select, DatePicker} from 'antd';
 import Title from './title';
@@ -9,8 +10,24 @@ const FieldSet = BindingForm.FieldSet;
 const baseRule = BindingForm.baseRule;
 
 
-// @observer
+@observer
 export default class Info extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      label: 'xing',
+      labelCol: { span: 2, offset: 4 },
+      isVisible: false,
+    }
+  }
+
+  componentDidMount() {
+    this.setState({
+      label: 'xxx',
+      isVisible: true,
+    })
+  }
 
   render() {
     const valueKeyPrefix = this.props.valueKeyPrefix;
@@ -23,11 +40,14 @@ export default class Info extends React.Component {
         <Title formStore={this.props.formStore} valueKey={`${valueKeyPrefix}.lastName`}/>
         <FieldSet
           rules={baseRule.basic.required('必填项(FieldSet-1)', {})}
+          colon={false}
         >
           <Field
-            label="姓"
+            label={this.state.label}
+            labelCol={this.state.labelCol}
             valueKey={`${valueKeyPrefix}.firstName`}
             required={true}
+            colon={this.state.isVisible}
             rules={[baseRule.basic.required('必填项。', {validateStatus: 'warning'})]}
           >
             <Input placeholder="拼音或英文" onBlur={() => {console.log('onBlur')}}/>
@@ -43,6 +63,7 @@ export default class Info extends React.Component {
         </FieldSet>
         <FieldSet
           rules={baseRule.basic.required('必填项(FieldSet-2)', {})}
+          labelCol={{ span: 6, offset: 2 }}
         >
           <Field label="出生日期" valueKey={`${valueKeyPrefix}.birth`}>
             <DatePicker/>

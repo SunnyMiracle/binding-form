@@ -5,13 +5,13 @@ import {reaction} from 'mobx';
 import {observer} from 'mobx-react';
 import _ from 'lodash';
 import storeHelper from './lib/storeHelper';
-import {mergeRules} from './lib/validate';
-import {isBaseVerification} from './rules/basic';
+import {addInstanceSymbol, deleteInstanceSymbol, getInstanceSymbol, InstanceListSymbol} from './createFormStore';
 import type {localRuleType, validateFunctionType} from './rules/basic';
-import type {FormStoreDataType} from './createFormStore';
-import {withContext, FieldContext} from './withContext';
+import type {FormStoreDataType}  from './createFormStore';
+import Connect from "./Connect";
 
 export type FieldPropTypes = {
+  formStore: FormStoreDataType,
   children: React.Element<any>,
   valueKey: string,
   trigger?: string, // 组件获取值的时机
@@ -21,57 +21,21 @@ export type FieldPropTypes = {
   ignoreDisplayError?: boolean,
   rules?: (localRuleType | validateFunctionType) | Array<localRuleType | validateFunctionType>, // 验证规则，可以指定多个或者单个验证规则，默认首要验证规则为第一个
   label: string | React.Node,
-  labelCol?: {},
-  wrapperCol?: {},
+  labelCol?: { span: number, offset: number },
+  wrapperCol?: { span: number, offset: number },
   disabled?: boolean | (store: FormStoreDataType, valueKey: string) => boolean,
   isVisible?: boolean | (store: FormStoreDataType, valueKey: string) => boolean,
   colon?: boolean,
+  isRequired?: boolean, // 是否必填，必填有小红星标志
   hasFeedback?: boolean,
   hideRequiredMark?: boolean // 必填选项标志不再通过props传入，而是根据验证规则来推导，但是保留API可以允许不显示红色星标志。
 };
 
-export type StateTypes = {
-  isCorrectValue: boolean,
-  errorMessage?: string,
-  validateStatus: 'warning' | 'error' | 'success' | 'validating',
-  validateRule: Array<{
-    uniqueKey: string,
-    method: () => {
-      isCorrectValue: boolean,
-      errorMessage?: string
-    }
-  }>,
-  isRequired: boolean, // 是否是必填项
-  disabled: boolean,
-  isVisible: boolean,
-  colon: boolean
-};
-
-export type ContextType = {
-  formStore: FormStoreDataType,
-  fieldSetHideRequiredMark: boolean,
-  formHideRequiredMark: boolean,
-  labelCol: {},
-  wrapperCol: {},
-  rules: (localRuleType | validateFunctionType) | Array<localRuleType | validateFunctionType>,
-  disabled: boolean,
-  isVisible: boolean,
-  colon: boolean
-};
-
 const FormItem = AntForm.Item;
 
-// 一个使用 Field 的中间组件
-function Toolbar(props) {
-  return (
-    <Field {...props}/>
-  );
-}
-
 @observer
-class Field extends React.Component<FieldPropTypes, StateTypes> {
+class Field extends React.Component<FieldPropTypes, null> {
 
-  static contextType = FieldContext;
   static defaultProps = {
     trigger: 'onChange',
     validateTrigger: 'onBlur',
@@ -80,184 +44,94 @@ class Field extends React.Component<FieldPropTypes, StateTypes> {
 
   reactionInstance: () => mixed;
 
-  constructor(props: FieldPropTypes, context: ContextType) {
+  constructor(props: FieldPropTypes) {
     super(props);
     this.ids = _.uniqueId('base_frame_component');
-    this.state = {
-      validateRule: [],
-      isCorrectValue: true,
-      errorMessage: '',
-      isRequired: false,  // 默认值为FALSE表明不是必填项
-      disabled: false,    // 默认值为FALSE表明不是禁用状态
-      isVisible: true,    // 默认值为TRUE表明是可见的
-      colon: true,        // 默认值为TRUE表明label后是否有冒号
-      validateStatus: 'success',
-    };
   }
-
-  UNSAFE_componentWillMount() { // eslint-disable-line
-    this.mergeRuleAndAddInstance(this.props, this.context);
-  }
-
   componentDidMount() {
+    this.addAndUpdateInstance({
+      ids: this.ids,
+      valueKey: this.props.valueKey,
+      validateRule: this.props.rules,
+      isRequired: this.props.isRequired,
+      disabled: this.getDisabled(),
+      isVisible: this.getIsVisible(),
+      colon: this.props.colon,
+      ignoreDisplayError: this.props.ignoreDisplayError,
+    });
     this.reactionInstance = reaction(
       () => {
         return {
-          isVisible: this.getIsVisible(this.props, this.context),
-          disabled: this.getDisableStatus(this.props, this.context),
+          isVisible: this.getIsVisible(),
+          disabled: this.getDisabled(),
+          ids: this.ids,
+          valueKey: this.props.valueKey,
+          validateRule: this.props.rules,
+          ignoreDisplayError: this.props.ignoreDisplayError,
+          isRequired: this.props.isRequired,
+          colon: this.props.colon,
         };
       },
       (data, thisReaction) => {
-        this.setState({
+        this.addAndUpdateInstance({
           isVisible: data.isVisible,
           disabled: data.disabled,
-        }, () => {
-          this.addAndUpdateInstance();
+          ids: this.ids,
+          valueKey: data.valueKey,
+          validateRule: data.validateRule,
+          ignoreDisplayError: data.ignoreDisplayError,
+          isRequired: data.isRequired,
+          colon: data.colon,
         });
       }
     );
   }
-
-  UNSAFE_componentWillReceiveProps(nextProps: FieldPropTypes, nextContext: ContextType) { // eslint-disable-line
-    this.mergeRuleAndAddInstance(nextProps, nextContext);
-  }
-  UNSAFE_componentWillUnmount() { // eslint-disable-line
-    this.context.formStore.deleteInstance(this.ids);
+  componentWillUnmount() {
+    this.props.formStore[deleteInstanceSymbol](this.ids);
     this.reactionInstance(); // 清理定义的函数
   }
-
   ids: string;
 
-  // 得出验证规则，以及是否有必填项的验证规则，同时更新InstanceList
-  mergeRuleAndAddInstance = (props: FieldPropTypes, context: ContextType) => {
-    const rules = mergeRules(context.rules, props.rules);
-    let isRequired = this.state.isRequired;
-    rules.forEach((ruleItem) => {
-      if (isBaseVerification(ruleItem.uniqueKey) && ruleItem.uniqueKey.indexOf('required') > 0) {
-        isRequired = true;
-      }
-    });
-    this.setState({
-      validateRule: rules,
-      isRequired: this.getIsNeedRequiredMark(props, isRequired),
-      disabled: this.getDisableStatus(props, context),
-      isVisible: this.getIsVisible(props, context),
-      colon: this.getColonStatus(props, context),
-    }, () => {
-      this.addAndUpdateInstance();
-    });
-  };
+  // 获取isVisible
+  getIsVisible = () => {
+    if (typeof this.props.isVisible === 'function') {
+      return this.props.isVisible(this.props.formStore, this.props.valueKey);
+    }
+    return this.props.isVisible;
+  }
+
+  // 获取disabled
+  getDisabled = () => {
+    if (typeof this.props.disabled === 'function') {
+      return this.props.disabled(this.props.formStore, this.props.valueKey);
+    }
+    return this.props.disabled;
+  }
 
   // 初始化、更新Field实例的函数
-  addAndUpdateInstance = () => {
-    this.context.formStore.addInstance(this.ids, {
-      valueKey: this.props.valueKey,
-      validateRule: this.state.validateRule,
-      updateFieldState: this.updateFieldState,
-      isCorrectValue: this.state.isCorrectValue,
-      errorMessage: this.state.errorMessage,
-      validateStatus: this.state.validateStatus,
-      isVisible: this.state.isVisible,
-      disabled: this.state.disabled,
-      ignoreDisplayError: this.props.ignoreDisplayError,
-    });
-  };
-
-  updateFieldState = (state: {
-    isCorrectValue: boolean,
-    errorMessage?: string,
-    validateStatus: 'warning' | 'error' | 'success' | 'validating',
-  }): void => {
-    this.setState({
-      isCorrectValue: state.isCorrectValue,
-      errorMessage: state.errorMessage,
-      validateStatus: state.validateStatus,
-    });
-  };
-
-  // 用于计算当前组件的禁用状态，通过context.disabled和props.disabled进行推导
-  getDisableStatus = (props: FieldPropTypes, context: ContextType): boolean => {
-    if (props.disabled !== undefined) {
-      if (typeof props.disabled === 'function') {
-        return props.disabled(context.formStore, props.valueKey);
-      }
-      return props.disabled;
+  addAndUpdateInstance = (info) => {
+    const instance = this.props.formStore[getInstanceSymbol](this.ids);
+    if (instance) {
+      this.props.formStore[addInstanceSymbol](this.ids, {
+        ...instance,
+        ...info
+      });
+    } else {
+      this.props.formStore[addInstanceSymbol](this.ids, {
+        ids: this.ids,
+        valueKey: this.props.valueKey,
+        validateRule: [],
+        isCorrectValue: true,
+        errorMessage: '',
+        isRequired: false,  // 默认值为FALSE表明不是必填项
+        disabled: false,    // 默认值为FALSE表明不是禁用状态
+        isVisible: true,    // 默认值为TRUE表明是可见的
+        colon: true,        // 默认值为TRUE表明label后是否有冒号
+        validateStatus: 'success',
+        ignoreDisplayError: this.props.ignoreDisplayError,
+        ...info
+      });
     }
-    if (context.disabled !== undefined) {
-      if (typeof context.disabled === 'function') {
-        return context.disabled(context.formStore);
-      }
-      return context.disabled;
-    }
-    // 如果props.disabled以及context.disabled未定义，则返回FALSE表明不是禁用状态。
-    return false;
-  };
-
-  // 用于计算colon属性，意思为是否显示label后的冒号，通过context.colon 和 props.colon 进行推导
-  getColonStatus = (props: FieldPropTypes, context: ContextType): boolean => {
-    if (props.colon !== undefined) {
-      return props.colon;
-    }
-    if (context.colon !== undefined) {
-      return context.colon;
-    }
-    // 如果context.colon未定义以及props.colon未定义，则默认返回TRUE，表明需要label后边的冒号
-    return true;
-  };
-
-  // 用于计算isVisible的值，通过context.isVisible 和props.isVisible进行推导
-  getIsVisible = (props: FieldPropTypes, context: ContextType): boolean => {
-    if (props.isVisible !== undefined) {
-      if (typeof props.isVisible === 'function') {
-        return props.isVisible(context.formStore, props.valueKey);
-      }
-      return props.isVisible;
-    }
-    if (context.isVisible !== undefined) {
-      if (typeof context.isVisible === 'function') {
-        return context.isVisible(context.formStore);
-      }
-      return context.isVisible;
-    }
-    // 如果两层都没有设置，则默认定义为展示结果，返回TRUE
-    return true;
-  };
-
-  // 用于计算最终hideRequiredMark的值，通过context.fieldSetHideRequiredMark, context.formHideRequiredMark, props.hideRequiredMark
-  getIsNeedRequiredMark = (props: FieldPropTypes, isRequiredFromState: boolean): boolean => {
-    if (props.hideRequiredMark !== undefined) { // 不是undefined，必定是布尔值，如果不是布尔值PropTypes自然会检测报错
-      return !props.hideRequiredMark && isRequiredFromState;
-    }
-    if (this.context.fieldSetHideRequiredMark !== undefined) {
-      return !this.context.fieldSetHideRequiredMark && isRequiredFromState;
-    }
-    if (this.context.formHideRequiredMark !== undefined) {
-      return !this.context.formHideRequiredMark && isRequiredFromState;
-    }
-    // 如果这三层都是undefined，则直接返回isRequiredFromState 即 this.state.isRequired即可
-    return isRequiredFromState;
-  };
-
-  // 用于计算label的布局格式，通过context.labelCol 合props.labelCol进行推导
-  getLabelCol = () => {
-    if (this.props.labelCol !== undefined) {
-      return this.props.labelCol;
-    }
-    if (this.context.labelCol !== undefined) {
-      return this.context.labelCol;
-    }
-    return undefined;
-  };
-
-  // 用于计算wrapperCol的布局格式，通过context.wrapperCol 合props.wrapperCol进行推导
-  getWrapperCol = () => {
-    if (this.props.wrapperCol !== undefined) {
-      return this.props.wrapperCol;
-    }
-    if (this.context.wrapperCol !== undefined) {
-      return this.context.wrapperCol;
-    }
-    return undefined;
   };
 
   processValue = (event: any) => {
@@ -280,14 +154,14 @@ class Field extends React.Component<FieldPropTypes, StateTypes> {
   };
 
   updateValue = (event: any) => {
-    storeHelper.set(this.context.formStore, this.props.valueKey, this.processValue(event));
+    storeHelper.set(this.props.formStore, this.props.valueKey, this.processValue(event));
   };
 
   validateThisField = () => {
-    this.context.formStore.getInstance(this.ids).verifyThisField();
+    this.props.formStore[getInstanceSymbol](this.ids).verifyThisField();
   };
 
-  getNewProps = () => {
+  getNewProps = (disabled) => {
     const eventParam = {};
     if (this.props.trigger !== undefined &&
       this.props.validateTrigger !== undefined &&
@@ -329,26 +203,27 @@ class Field extends React.Component<FieldPropTypes, StateTypes> {
     const valuePropsName = this.props.valuePropName ? this.props.valuePropName : 'value';
     return {
       ...eventParam,
-      disabled: this.state.disabled,
-      // id: this.ids,
-      [valuePropsName]: storeHelper.get(this.context.formStore, this.props.valueKey),
+      disabled,
+      [valuePropsName]: storeHelper.get(this.props.formStore, this.props.valueKey),
     };
   };
+
   render() {
-    if (this.state.isVisible) {
+    const instance = this.props.formStore[InstanceListSymbol].get(this.ids);
+    if (instance && instance.isVisible) {
       return (
         <FormItem
-          validateStatus={this.state.validateStatus}
-          help={this.state.errorMessage}
-          required={this.state.isRequired}
+          validateStatus={instance.validateStatus}
+          help={instance.errorMessage}
+          required={instance.isRequired}
           label={this.props.label}
           hasFeedback={this.props.hasFeedback}
-          colon={this.state.colon}
-          labelCol={this.getLabelCol()}
-          wrapperCol={this.getWrapperCol()}
+          colon={instance.colon}
+          labelCol={this.props.labelCol}
+          wrapperCol={this.props.wrapperCol}
         >
           <div id={this.ids}>
-            {React.cloneElement(this.props.children, this.getNewProps())}
+            {React.cloneElement(this.props.children, this.getNewProps(instance.disabled))}
           </div>
         </FormItem>
       );
@@ -358,4 +233,4 @@ class Field extends React.Component<FieldPropTypes, StateTypes> {
 
 }
 
-export default withContext(Toolbar);
+export default Connect(Field);

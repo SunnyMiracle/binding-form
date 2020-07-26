@@ -1,14 +1,10 @@
 // @flow
 import * as React from 'react';
-import {action} from 'mobx';
 import {observer} from "mobx-react";
 import moment from 'moment';
-import BindingForm from '../index.jsx';
+import { Form, createFormStore } from '../index.jsx';
 import Info from './components/info';
 import {Button} from "antd";
-
-const Form = BindingForm.Form;
-const createFormStore = BindingForm.createFormStore;
 
 type PropType = {}
 
@@ -24,20 +20,17 @@ type PropType = {}
 // }
 const data = {
   rawData: [],
-  updatePassenger: action(function (data, index) {
+  updatePassenger: function (data, index) {
     this.rawData[index] = {
       ...this.rawData[index],
       ...data
     };
-  }),
-  addPassenger: action(function (data) {
+  },
+  addPassenger: function (data) {
     this.rawData.push({
       ...data,
-      plus: action(function() {
-        this.firstName = this.firstName + '_test';
-      })
     });
-  })
+  }
 };
 
 
@@ -49,15 +42,13 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
     this.state = {
       loading: true
     };
-    this.formStore = createFormStore(data);
+    [this.formStore, this.formSubmit] = createFormStore(data);
   }
 
   componentDidMount() {
     this.fetchInitData().then((res) => {
       this.formStore.updatePassenger(res, 0);
     });
-    console.log(this.formStore);
-    console.log(this.formStore.getInstance());
   }
 
   getNewPassenger = () => {
@@ -71,14 +62,15 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
     });
   }
 
-  submitFunction = (validation) => {
-    validation.then((result) => {
-      console.log(result);
+  submitFunction = () => {
+    console.log(this.formStore);
+    this.formSubmit().then((data) => {
+      console.log(data);
     })
   };
 
   clearFunction = () => {
-    this.formStore.resetFields();
+    this.formStore.rawData = [];
   };
 
   /**
@@ -151,20 +143,19 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
     })
   };
 
-
   render() {
     return (
       <Form
         formStore={this.formStore}
         hideRequiredMark={false}
-        layout="vertical"
+        layout="horizontal"
         onSubmit={this.submitFunction}
       >
         <div>
           {this.renderData()}
           <Button onClick={() => { this.getNewPassenger(); }}>Add</Button>
         </div>
-        <Button type="submit">提交</Button>
+        <Button type="submit" onClick={this.submitFunction}>提交</Button>
         <Button onClick={this.clearFunction}>清空</Button>
       </Form>
     );

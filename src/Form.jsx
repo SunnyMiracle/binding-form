@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react';
 import {Form as AntForm} from 'antd';
-import {observer} from 'mobx-react';
-import type {FormStoreDataType, InstanceType} from './createFormStore';
+import type {FormStoreDataType} from './createFormStore';
 
 
 type FormPropTypes = {
@@ -10,27 +9,13 @@ type FormPropTypes = {
   children: any,
   layout?: 'inline' | 'vertical' | 'horizontal',
   hideRequiredMark?: boolean,
-  onSubmit: (Promise<{
-    errorList: Array<InstanceType>,
-    state: {}
-  }>) => void
 }
 
 
 // 创建Context组件
 export const FormContext = React.createContext();
 
-@observer
 export default class Form extends React.Component<FormPropTypes> {
-
-  handleSubmit = (event: Event) => {
-    event.preventDefault();
-    if (this.props.onSubmit) {
-      if (typeof this.props.formStore.validateFieldsAndScroll === 'function') {
-        this.props.onSubmit(this.props.formStore.validateFieldsAndScroll());
-      }
-    }
-  };
 
   render() {
     return (
@@ -38,6 +23,7 @@ export default class Form extends React.Component<FormPropTypes> {
         value={{
           formStore: this.props.formStore,
           formHideRequiredMark: this.props.hideRequiredMark,
+          layout: this.props.layout,
         }}
       >
         <AntForm

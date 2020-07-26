@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react';
-import {observer} from 'mobx-react';
 import type {localRuleType, validateFunctionType} from './rules/basic';
 import type {FormStoreDataType} from './createFormStore';
+import { FormContext } from './Form';
 
 type FieldSetPropTypes = {
   children: React.Node,
@@ -12,21 +12,18 @@ type FieldSetPropTypes = {
   isVisible?: boolean | (store: FormStoreDataType) => boolean,
   hideRequiredMark?: boolean,
   colon?: boolean,
-  labelCol?: {},
-  wrapperCol?: {},
+  labelCol?: { span: number, offset: number },
+  wrapperCol?: { span: number, offset: number },
   rules?: (localRuleType | validateFunctionType) | Array<localRuleType | validateFunctionType>, // 验证规则
   disabled?: boolean | (store: FormStoreDataType) => boolean // 是否不可用状态，将传导影响Field层
 }
 
-// 创建Context组件
-export const FieldSetContext = React.createContext();
-
-
-@observer
 export default class FieldSet extends React.Component<FieldSetPropTypes> {
 
+  static contextType = FormContext;
+
   getContextData = () => {
-    return {
+    const result =  {
       rules: this.props.rules,
       labelCol: this.props.labelCol,
       wrapperCol: this.props.wrapperCol,
@@ -34,16 +31,31 @@ export default class FieldSet extends React.Component<FieldSetPropTypes> {
       fieldSetHideRequiredMark: this.props.hideRequiredMark,
       isVisible: this.props.isVisible,
       disabled: this.props.disabled,
+      formStore: this.context.formStore,
+      formHideRequiredMark: this.context.formHideRequiredMark,
     };
+    if (this.context.layout) {
+      if (this.context.layout === 'horizontal') {
+        result.labelCol = this.props.labelCol || {
+          span: 3,
+          offset: 1
+        };
+        result.wrapperCol = this.props.wrapperCol || {
+          span: 10,
+          offset: 0
+        };
+      }
+    }
+    return result;
   };
 
   render() {
     return (
-      <FieldSetContext.Provider
+      <FormContext.Provider
         value={this.getContextData()}
       >
         {this.props.children}
-      </FieldSetContext.Provider>
+      </FormContext.Provider>
     );
   }
 
