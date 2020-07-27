@@ -23,10 +23,12 @@ export default class Info extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({
-      label: 'xxx',
-      isVisible: true,
-    })
+    setTimeout(() => {
+      this.setState({
+        label: '姓',
+        isVisible: true,
+      });
+    }, 1000);
   }
 
   render() {
@@ -44,10 +46,9 @@ export default class Info extends React.Component {
         >
           <Field
             label={this.state.label}
-            labelCol={this.state.labelCol}
             valueKey={`${valueKeyPrefix}.firstName`}
-            required={true}
             colon={this.state.isVisible}
+            hideRequiredMark={true}
             rules={[baseRule.basic.required('必填项。', {validateStatus: 'warning'})]}
           >
             <Input placeholder="拼音或英文" onBlur={() => {console.log('onBlur')}}/>
@@ -55,7 +56,6 @@ export default class Info extends React.Component {
           <Field
             label="名"
             valueKey={`${valueKeyPrefix}.lastName`}
-            required={true}
             rules={[baseRule.basic.required('必填项。', {validateStatus: 'warning'})]}
           >
             <Input placeholder="拼音或英文" onBlur={() => {console.log('onBlur')}}/>
@@ -63,9 +63,12 @@ export default class Info extends React.Component {
         </FieldSet>
         <FieldSet
           rules={baseRule.basic.required('必填项(FieldSet-2)', {})}
-          labelCol={{ span: 6, offset: 2 }}
         >
-          <Field label="出生日期" valueKey={`${valueKeyPrefix}.birth`}>
+          <Field
+            label="出生日期"
+            valueKey={`${valueKeyPrefix}.birth`}
+            validateTrigger="onChange"
+          >
             <DatePicker/>
           </Field>
           <Field label="证件类型" valueKey={`${valueKeyPrefix}.id_type`}>
@@ -77,8 +80,18 @@ export default class Info extends React.Component {
           <Field
             label="证件号码"
             valueKey={`${valueKeyPrefix}.id_number`}
-            required={true}
-            rules={[baseRule.basic.verifyNumber('请输入数字！', {})]}
+            rules={
+              [
+                baseRule.basic.verifyNumber('请输入数字！', {}),
+                (value, store, standardStatus) => {
+                  return new Promise((resolve) => {
+                    setTimeout(() => { resolve(); }, 1000);
+                  }).then(() => {
+                    return standardStatus.error('字符串错误')
+                  })
+                }
+              ]
+            }
             isVisible={idNumberIsVisible}
           >
             <Input/>
@@ -87,6 +100,7 @@ export default class Info extends React.Component {
             label="证件过期日期"
             valueKey={`${valueKeyPrefix}.idExpiryDate`}
             isVisible={idNumberIsVisible}
+            validateTrigger="onChange"
           >
             <DatePicker/>
           </Field>

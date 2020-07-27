@@ -22,7 +22,7 @@ export default class FieldSet extends React.Component<FieldSetPropTypes> {
 
   static contextType = FormContext;
 
-  getContextData = () => {
+  getContextData = (): any => {
     const result =  {
       rules: this.props.rules,
       labelCol: this.props.labelCol,
@@ -32,6 +32,7 @@ export default class FieldSet extends React.Component<FieldSetPropTypes> {
       isVisible: this.props.isVisible,
       disabled: this.props.disabled,
       formStore: this.context.formStore,
+      layout: this.context.layout,
       formHideRequiredMark: this.context.formHideRequiredMark,
     };
     if (this.context.layout) {

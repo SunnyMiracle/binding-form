@@ -55,7 +55,7 @@ export function isBaseVerification(identity: string) {
  * @param options
  * @return {function(*=, *=)}
  */
-export function required(message?: string | React.Node, options: optionsType) {
+export function required(message: string | React.Node, options: optionsType) {
   validateOptions(options);
   return {
     identity: `${functionNameTip}-required`,

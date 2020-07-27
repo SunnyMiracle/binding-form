@@ -13,22 +13,22 @@ type FormPropTypes = {
 
 
 // 创建Context组件
-export const FormContext = React.createContext();
+export const FormContext: any = React.createContext();
 
 export default class Form extends React.Component<FormPropTypes> {
 
   render() {
+    const value: any = {
+      formStore: this.props.formStore,
+      formHideRequiredMark: this.props.hideRequiredMark,
+      layout: this.props.layout,
+    };
     return (
       <FormContext.Provider
-        value={{
-          formStore: this.props.formStore,
-          formHideRequiredMark: this.props.hideRequiredMark,
-          layout: this.props.layout,
-        }}
+        value={value}
       >
         <AntForm
           layout={this.props.layout}
-          onSubmit={this.handleSubmit}
           hideRequiredMark={this.props.hideRequiredMark}
         >
           {this.props.children}

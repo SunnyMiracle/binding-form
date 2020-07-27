@@ -20,12 +20,6 @@ type PropType = {}
 // }
 const data = {
   rawData: [],
-  updatePassenger: function (data, index) {
-    this.rawData[index] = {
-      ...this.rawData[index],
-      ...data
-    };
-  },
   addPassenger: function (data) {
     this.rawData.push({
       ...data,
@@ -33,9 +27,8 @@ const data = {
   }
 };
 
-
 @observer
-export default class SimpleTest extends React.Component<PropType, StateType> {
+export default class SimpleTest extends React.Component<PropType> {
 
   constructor() {
     super();
@@ -47,7 +40,7 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
 
   componentDidMount() {
     this.fetchInitData().then((res) => {
-      this.formStore.updatePassenger(res, 0);
+      this.formStore.addPassenger(res);
     });
   }
 
@@ -70,7 +63,7 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
   };
 
   clearFunction = () => {
-    this.formStore.rawData = [];
+    this.formStore.rawData.pop();
   };
 
   /**
@@ -89,16 +82,19 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
    */
 
   renderData = () => {
-    return this.formStore.rawData.map((item, index) => {
-      return (
-        <Info
-          data={item}
-          formStore={this.formStore}
-          valueKeyPrefix={`rawData.${index}`}
-          key={index}
-        />
-      );
-    });
+    if (this.formStore.rawData.length) {
+      return this.formStore.rawData.map((item, index) => {
+        return (
+          <Info
+            data={item}
+            formStore={this.formStore}
+            valueKeyPrefix={`rawData.${index}`}
+            key={index}
+          />
+        );
+      });
+    }
+    return null;
   };
 
   // 模拟接口，获取默认数据
@@ -155,8 +151,10 @@ export default class SimpleTest extends React.Component<PropType, StateType> {
           {this.renderData()}
           <Button onClick={() => { this.getNewPassenger(); }}>Add</Button>
         </div>
-        <Button type="submit" onClick={this.submitFunction}>提交</Button>
-        <Button onClick={this.clearFunction}>清空</Button>
+        <div style={{ float: 'right' }}>
+          <Button type="primary" style={{ marginRight: '5px' }} onClick={this.submitFunction}>提交</Button>
+          <Button onClick={this.clearFunction}>清空</Button>
+        </div>
       </Form>
     );
   }

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import {toJS, action, observable, extendObservable} from 'mobx';
+import {toJS, action, observable} from 'mobx';
 import {verifyField} from './lib/validate';
 import storeHelper from './lib/storeHelper';
 
@@ -29,7 +29,6 @@ export type InstanceType = {
   }>,
   ignoreDisplayError?: boolean,
   isCorrectValue: boolean,
-  isRequired: boolean,
   errorMessage: string | React.Node,
   validateStatus: 'warning' | 'error' | 'success' | 'validating',
   isVisible: boolean,
@@ -63,16 +62,16 @@ function createFormStore<T: FormStoreDataType>(data: T):
         MBData,
         this.valueKey,
       ).then((res) => {
-        MBData[addInstanceSymbol](this.ids, {
-          ...this,
-         isCorrectValue: res.isCorrectValue,
-         errorMessage: res.errorMessage,
-         validateStatus: !this.ignoreDisplayError ? res.validateStatus : 'success',
-        });
+        this.isCorrectValue = res.isCorrectValue;
+        this.errorMessage = res.errorMessage;
+        this.validateStatus = !this.ignoreDisplayError ? res.validateStatus : 'success';
         return res;
       });
     }
     return new Promise((resolve, reject) => {
+      this.isCorrectValue = true;
+      this.errorMessage = '';
+      this.validateStatus = 'success';
       resolve({
         isCorrectValue: true,
         errorMessage: '',

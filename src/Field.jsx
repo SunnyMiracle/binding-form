@@ -8,10 +8,9 @@ import storeHelper from './lib/storeHelper';
 import {addInstanceSymbol, deleteInstanceSymbol, getInstanceSymbol, InstanceListSymbol} from './createFormStore';
 import type {localRuleType, validateFunctionType} from './rules/basic';
 import type {FormStoreDataType}  from './createFormStore';
-import Connect from "./Connect";
+import Connect, {ConnectContext} from "./Connect";
 
 export type FieldPropTypes = {
-  formStore: FormStoreDataType,
   children: React.Element<any>,
   valueKey: string,
   trigger?: string, // 组件获取值的时机
@@ -26,7 +25,6 @@ export type FieldPropTypes = {
   disabled?: boolean | (store: FormStoreDataType, valueKey: string) => boolean,
   isVisible?: boolean | (store: FormStoreDataType, valueKey: string) => boolean,
   colon?: boolean,
-  isRequired?: boolean, // 是否必填，必填有小红星标志
   hasFeedback?: boolean,
   hideRequiredMark?: boolean // 必填选项标志不再通过props传入，而是根据验证规则来推导，但是保留API可以允许不显示红色星标志。
 };
@@ -41,6 +39,7 @@ class Field extends React.Component<FieldPropTypes, null> {
     validateTrigger: 'onBlur',
     valuePropName: 'value',
   };
+  static contextType = ConnectContext;
 
   reactionInstance: () => mixed;
 
@@ -53,7 +52,6 @@ class Field extends React.Component<FieldPropTypes, null> {
       ids: this.ids,
       valueKey: this.props.valueKey,
       validateRule: this.props.rules,
-      isRequired: this.props.isRequired,
       disabled: this.getDisabled(),
       isVisible: this.getIsVisible(),
       colon: this.props.colon,
@@ -68,7 +66,6 @@ class Field extends React.Component<FieldPropTypes, null> {
           valueKey: this.props.valueKey,
           validateRule: this.props.rules,
           ignoreDisplayError: this.props.ignoreDisplayError,
-          isRequired: this.props.isRequired,
           colon: this.props.colon,
         };
       },
@@ -80,14 +77,13 @@ class Field extends React.Component<FieldPropTypes, null> {
           valueKey: data.valueKey,
           validateRule: data.validateRule,
           ignoreDisplayError: data.ignoreDisplayError,
-          isRequired: data.isRequired,
           colon: data.colon,
         });
       }
     );
   }
   componentWillUnmount() {
-    this.props.formStore[deleteInstanceSymbol](this.ids);
+    this.context.formStore[deleteInstanceSymbol](this.ids);
     this.reactionInstance(); // 清理定义的函数
   }
   ids: string;
@@ -95,7 +91,7 @@ class Field extends React.Component<FieldPropTypes, null> {
   // 获取isVisible
   getIsVisible = () => {
     if (typeof this.props.isVisible === 'function') {
-      return this.props.isVisible(this.props.formStore, this.props.valueKey);
+      return this.props.isVisible(this.context.formStore, this.props.valueKey);
     }
     return this.props.isVisible;
   }
@@ -103,27 +99,26 @@ class Field extends React.Component<FieldPropTypes, null> {
   // 获取disabled
   getDisabled = () => {
     if (typeof this.props.disabled === 'function') {
-      return this.props.disabled(this.props.formStore, this.props.valueKey);
+      return this.props.disabled(this.context.formStore, this.props.valueKey);
     }
     return this.props.disabled;
   }
 
   // 初始化、更新Field实例的函数
-  addAndUpdateInstance = (info) => {
-    const instance = this.props.formStore[getInstanceSymbol](this.ids);
+  addAndUpdateInstance = (info: any) => {
+    const instance = this.context.formStore[getInstanceSymbol](this.ids);
     if (instance) {
-      this.props.formStore[addInstanceSymbol](this.ids, {
+      this.context.formStore[addInstanceSymbol](this.ids, {
         ...instance,
         ...info
       });
     } else {
-      this.props.formStore[addInstanceSymbol](this.ids, {
+      this.context.formStore[addInstanceSymbol](this.ids, {
         ids: this.ids,
         valueKey: this.props.valueKey,
         validateRule: [],
         isCorrectValue: true,
         errorMessage: '',
-        isRequired: false,  // 默认值为FALSE表明不是必填项
         disabled: false,    // 默认值为FALSE表明不是禁用状态
         isVisible: true,    // 默认值为TRUE表明是可见的
         colon: true,        // 默认值为TRUE表明label后是否有冒号
@@ -154,11 +149,11 @@ class Field extends React.Component<FieldPropTypes, null> {
   };
 
   updateValue = (event: any) => {
-    storeHelper.set(this.props.formStore, this.props.valueKey, this.processValue(event));
+    storeHelper.set(this.context.formStore, this.props.valueKey, this.processValue(event));
   };
 
   validateThisField = () => {
-    this.props.formStore[getInstanceSymbol](this.ids).verifyThisField();
+    this.context.formStore[getInstanceSymbol](this.ids).verifyThisField();
   };
 
   getNewProps = (disabled) => {
@@ -200,22 +195,26 @@ class Field extends React.Component<FieldPropTypes, null> {
       // 由于设置了defaultProps,,不会执行到这里。但是为了绕考Flow不讲defaultProps纳入计算，所以绕一下。
       throw new Error('this.props.trigger and this.props.validateTrigger 必须赋值。');
     }
-    const valuePropsName = this.props.valuePropName ? this.props.valuePropName : 'value';
+    const valuePropsName: string = this.props.valuePropName ? this.props.valuePropName : 'value';
     return {
       ...eventParam,
       disabled,
-      [valuePropsName]: storeHelper.get(this.props.formStore, this.props.valueKey),
+      [valuePropsName]: storeHelper.get(this.context.formStore, this.props.valueKey),
     };
   };
 
   render() {
-    const instance = this.props.formStore[InstanceListSymbol].get(this.ids);
+    const instance = this.context.formStore[InstanceListSymbol].get(this.ids);
     if (instance && instance.isVisible) {
+      let isRequired = this.context.isRequired;
+      if (this.props.hideRequiredMark) {
+        isRequired = false;
+      }
       return (
         <FormItem
           validateStatus={instance.validateStatus}
           help={instance.errorMessage}
-          required={instance.isRequired}
+          required={isRequired}
           label={this.props.label}
           hasFeedback={this.props.hasFeedback}
           colon={instance.colon}

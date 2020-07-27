@@ -12,16 +12,16 @@ export type ContextType = {
   formStore: FormStoreDataType,
   fieldSetHideRequiredMark: boolean,
   formHideRequiredMark: boolean,
-  labelCol: {},
-  wrapperCol: {},
-  rules: (localRuleType | validateFunctionType) | Array<localRuleType | validateFunctionType>,
-  disabled: boolean,
-  isVisible: boolean,
-  colon: boolean
+  labelCol?: { span: number, offset: number },
+  wrapperCol?: { span: number, offset: number },
+  rules?: (localRuleType | validateFunctionType) | Array<localRuleType | validateFunctionType>,
+  disabled?: boolean,
+  isVisible?: boolean,
+  colon?: boolean
 };
 
-
-export default function Connect (Instance) {
+export const ConnectContext: any = React.createContext();
+export default function Connect(Instance: React.AbstractComponent<FieldPropTypes>) {
   return class FieldWrap extends React.Component<FieldPropTypes> {
 
     // 用于计算当前组件的禁用状态，通过context.disabled和props.disabled进行推导
@@ -75,13 +75,13 @@ export default function Connect (Instance) {
     // 用于计算最终hideRequiredMark的值，通过context.fieldSetHideRequiredMark, context.formHideRequiredMark, props.hideRequiredMark
     getIsNeedRequiredMark = (props: FieldPropTypes, context: ContextType): boolean => {
       if (props.hideRequiredMark !== undefined) { // 不是undefined，必定是布尔值，如果不是布尔值PropTypes自然会检测报错
-        return !props.hideRequiredMark;
+        return props.hideRequiredMark;
       }
       if (context.fieldSetHideRequiredMark !== undefined) {
-        return !context.fieldSetHideRequiredMark;
+        return context.fieldSetHideRequiredMark;
       }
       if (context.formHideRequiredMark !== undefined) {
-        return !context.formHideRequiredMark;
+        return context.formHideRequiredMark;
       }
       // 如果这三层都是undefined，则直接返回isRequiredFromState
       return false;
@@ -127,7 +127,7 @@ export default function Connect (Instance) {
     render() {
       return (
         <FormContext.Consumer>
-          {(context: ContextType) => {
+          {(context: any) => {
             const disabled = this.getDisableStatus(this.props, context);
             const colon = this.getColonStatus(this.props, context);
             const isVisible = this.getIsVisible(this.props, context);
@@ -143,10 +143,15 @@ export default function Connect (Instance) {
             resultProps.wrapperCol = wrapperCol;
             resultProps.colon = colon;
             resultProps.rules = ruleAndIsRequired.rules;
-            resultProps.isRequired = ruleAndIsRequired.isRequired;
-            resultProps.formStore = context.formStore;
             return (
-              <Instance {...resultProps} />
+              <ConnectContext.Provider
+                  value={{
+                    formStore: context.formStore,
+                    isRequired: ruleAndIsRequired.isRequired,
+                  }}
+              >
+                <Instance {...resultProps}/>
+              </ConnectContext.Provider>
             );
           }}
         </FormContext.Consumer>
