@@ -55,7 +55,7 @@ export default class Info extends React.Component {
           <Field label="证件号码" valueKey={`${valueKeyPrefix}.id_number`} rules={[this.checkIdNumber]} hasFeedback={true} isVisible={idNumberIsVisible}>
             <Input/>
           </Field>
-          <Field label="证件过期日期" valueKey={`${valueKeyPrefix}.idExpiryDate`} disabled={idNumberIsVisible} validateTrigger="onChange">
+          <Field label="证件过期日期" valueKey={`${valueKeyPrefix}.birth`} disabled={idNumberIsVisible} validateTrigger="onChange">
             <DatePicker/>
           </Field>
         </FieldSet>

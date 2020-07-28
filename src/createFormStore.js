@@ -61,7 +61,7 @@ function createFormStore<T: FormStoreDataType>(data: T): {
   submit: () => Promise<ValidationResultType>,
   getState: () => Object,
   getInstance: (ids?: string) => InstanceType | Map<string, InstanceType>,
-  valueKeyToIds: Map<string, string>
+  valueKeyToIds: Map<string, Array<string>>
 } {
   const MBData = observable(data);
 
@@ -96,7 +96,13 @@ function createFormStore<T: FormStoreDataType>(data: T): {
   MBData[valueKeyToIdsSymbol] = new Map();
   MBData[InstanceListSymbol] = observable.map(new Map());
   MBData[addInstanceSymbol] = action((ids: string, target: InstanceType) => {
-    MBData[valueKeyToIdsSymbol].set(target.valueKey, ids);
+    if (MBData[valueKeyToIdsSymbol].has(target.valueKey)) {
+      const list = MBData[valueKeyToIdsSymbol].get(target.valueKey);
+      list.push(ids);
+      MBData[valueKeyToIdsSymbol].set(target.valueKey, list);
+    } else {
+      MBData[valueKeyToIdsSymbol].set(target.valueKey, [ids]);
+    }
     MBData[InstanceListSymbol].set(ids, {...target, verifyThisField});
   });
   MBData[deleteInstanceSymbol] = action((ids: string, valueKey: string) => {

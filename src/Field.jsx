@@ -211,20 +211,20 @@ class Field extends React.Component<FieldPropTypes, null> {
         isRequired = false;
       }
       return (
-        <FormItem
-          validateStatus={instance.validateStatus}
-          help={instance.errorMessage}
-          required={isRequired}
-          label={this.props.label}
-          hasFeedback={this.props.hasFeedback}
-          colon={instance.colon}
-          labelCol={this.props.labelCol}
-          wrapperCol={this.props.wrapperCol}
-        >
-          <div id={this.ids}>
+        <div id={this.ids}>
+          <FormItem
+            validateStatus={instance.validateStatus}
+            help={instance.errorMessage}
+            required={isRequired}
+            label={this.props.label}
+            hasFeedback={this.props.hasFeedback}
+            colon={instance.colon}
+            labelCol={this.props.labelCol}
+            wrapperCol={this.props.wrapperCol}
+          >
             {React.cloneElement(this.props.children, this.getNewProps(instance.disabled))}
-          </div>
-        </FormItem>
+          </FormItem>
+        </div>
       );
     }
     return <span />;
