@@ -1,9 +1,6 @@
 import React from 'react';
-import {observer} from "mobx-react/index";
-import BindingForm from '../../index.jsx';
-
-const storeHelper = BindingForm.storeHelper;
-
+import {observer} from "mobx-react";
+import {storeHelper} from '../../index.jsx';
 
 @observer
 export default class Title extends React.Component {

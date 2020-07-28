@@ -35,7 +35,10 @@ export default class SimpleTest extends React.Component<PropType> {
     this.state = {
       loading: true
     };
-    [this.formStore, this.formSubmit] = createFormStore(data);
+    const result = createFormStore(data);
+    this.formStore = result.store;
+    this.formSubmit = result.submit;
+    this.valueKeyToIds = result.valueKeyToIds;
   }
 
   componentDidMount() {
@@ -56,8 +59,9 @@ export default class SimpleTest extends React.Component<PropType> {
   }
 
   submitFunction = () => {
-    console.log(this.formStore);
+    console.log(this.valueKeyToIds);
     this.formSubmit().then((data) => {
+      this.formStore.rawData[0].firstName = '122223'
       console.log(data);
     })
   };
@@ -82,19 +86,16 @@ export default class SimpleTest extends React.Component<PropType> {
    */
 
   renderData = () => {
-    if (this.formStore.rawData.length) {
-      return this.formStore.rawData.map((item, index) => {
-        return (
-          <Info
-            data={item}
-            formStore={this.formStore}
-            valueKeyPrefix={`rawData.${index}`}
-            key={index}
-          />
-        );
-      });
-    }
-    return null;
+    return this.formStore.rawData.map((item, index) => {
+      return (
+        <Info
+          data={item}
+          formStore={this.formStore}
+          valueKeyPrefix={`rawData.${index}`}
+          key={index}
+        />
+      );
+    });
   };
 
   // 模拟接口，获取默认数据

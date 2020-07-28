@@ -83,7 +83,7 @@ class Field extends React.Component<FieldPropTypes, null> {
     );
   }
   componentWillUnmount() {
-    this.context.formStore[deleteInstanceSymbol](this.ids);
+    this.context.formStore[deleteInstanceSymbol](this.ids, this.props.valueKey);
     this.reactionInstance(); // 清理定义的函数
   }
   ids: string;

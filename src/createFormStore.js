@@ -5,12 +5,22 @@ import {verifyField} from './lib/validate';
 import storeHelper from './lib/storeHelper';
 
 // 实例对象集合的symbol对象
-export const InstanceListSymbol = Symbol('instance');
+export const InstanceListSymbol = Symbol('instanceList');
 export const addInstanceSymbol = Symbol('addInstance');
 export const deleteInstanceSymbol = Symbol('deleteInstance');
 export const getInstanceSymbol = Symbol('getInstance');
 export const validateFieldsAndScrollSymbol = Symbol('validateFieldsAndScroll');
 export const getStateSymbol = Symbol('getState');
+export const valueKeyToIdsSymbol = Symbol('valueKeyToIds');
+
+/**
+ * case
+ * 如果在校验阶段，想同步验证其他的组件（不是手动触发，而是通过代码来控制），如何做？
+ * 需要从store中找到对应组件的实例，需要遍历instanceList列表，然后找到valueKey与你想要找的instance 相同的，instance，然后调用挂在在
+ * 实例上的verifyThisField方法。
+ *
+ * 如此不方便，可以考虑做一个valueKey与ids的映射关系，便于查找。
+ */
 
 // 表单中每一项的实例数据。
 export type InstanceType = {
@@ -46,9 +56,13 @@ export type FormStoreDataType = {
   [key: Symbol]: Map<string, InstanceType> | any,
 }
 
-function createFormStore<T: FormStoreDataType>(data: T):
-  [T, () => Promise<ValidationResultType>, () => Object, (ids?: string) => InstanceType | Map<string, InstanceType>]
-{
+function createFormStore<T: FormStoreDataType>(data: T): {
+  store: T,
+  submit: () => Promise<ValidationResultType>,
+  getState: () => Object,
+  getInstance: (ids?: string) => InstanceType | Map<string, InstanceType>,
+  valueKeyToIds: Map<string, string>
+} {
   const MBData = observable(data);
 
   // 验证函数
@@ -79,15 +93,15 @@ function createFormStore<T: FormStoreDataType>(data: T):
       });
     });
   }
+  MBData[valueKeyToIdsSymbol] = new Map();
   MBData[InstanceListSymbol] = observable.map(new Map());
   MBData[addInstanceSymbol] = action((ids: string, target: InstanceType) => {
+    MBData[valueKeyToIdsSymbol].set(target.valueKey, ids);
     MBData[InstanceListSymbol].set(ids, {...target, verifyThisField});
   });
-  MBData[deleteInstanceSymbol] = action((ids: string) => {
-    const result = MBData[InstanceListSymbol].delete(ids);
-    if (!result) { // 貌似没必要
-      throw new Error('当前实例删除失败');
-    }
+  MBData[deleteInstanceSymbol] = action((ids: string, valueKey: string) => {
+    MBData[valueKeyToIdsSymbol].delete(valueKey);
+    MBData[InstanceListSymbol].delete(ids);
   });
   MBData[getInstanceSymbol] = action((ids?: string) => {
     if (ids) {
@@ -137,6 +151,12 @@ function createFormStore<T: FormStoreDataType>(data: T):
     });
     return result;
   };
-  return [MBData, MBData[validateFieldsAndScrollSymbol], MBData[getStateSymbol], MBData[getInstanceSymbol]];
+  return {
+    store: MBData,
+    submit: MBData[validateFieldsAndScrollSymbol],
+    getState: MBData[getStateSymbol],
+    getInstance: MBData[getInstanceSymbol],
+    valueKeyToIds: MBData[valueKeyToIdsSymbol],
+  };
 }
 export default createFormStore;
