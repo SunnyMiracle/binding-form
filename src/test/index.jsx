@@ -38,6 +38,7 @@ export default class SimpleTest extends React.Component<PropType> {
     const result = createFormStore(data);
     this.formStore = result.store;
     this.formSubmit = result.submit;
+    this.getInstance = result.getInstance;
     this.valueKeyToIds = result.valueKeyToIds;
   }
 
@@ -45,6 +46,10 @@ export default class SimpleTest extends React.Component<PropType> {
     this.fetchInitData().then((res) => {
       this.formStore.addPassenger(res);
     });
+    setTimeout(() => {
+      const target = this.valueKeyToIds.get("rawData.0.firstName")[0];
+      window.firstNameInstance = this.getInstance(target);
+    }, 2000);
   }
 
   getNewPassenger = () => {
@@ -116,7 +121,6 @@ export default class SimpleTest extends React.Component<PropType> {
       });
     })
   }
-
   // 模拟接口获取人的相关信息
   fetchPassengerInfo = (key) => {
     return new Promise((resolve, reject) => {

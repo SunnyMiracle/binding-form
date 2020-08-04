@@ -43,7 +43,6 @@ export type InstanceType = {
   validateStatus: 'warning' | 'error' | 'success' | 'validating',
   isVisible: boolean,
   disabled?: boolean,
-  colon: boolean,
 }
 
 // 验证函数返回的结果，validateFieldsAndScroll 返回值Promise对象返回

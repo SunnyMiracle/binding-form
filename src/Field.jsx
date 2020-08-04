@@ -54,7 +54,6 @@ class Field extends React.Component<FieldPropTypes, null> {
       validateRule: this.props.rules,
       disabled: this.getDisabled(),
       isVisible: this.getIsVisible(),
-      colon: this.props.colon,
       ignoreDisplayError: this.props.ignoreDisplayError,
     });
     this.reactionInstance = reaction(
@@ -66,7 +65,6 @@ class Field extends React.Component<FieldPropTypes, null> {
           valueKey: this.props.valueKey,
           validateRule: this.props.rules,
           ignoreDisplayError: this.props.ignoreDisplayError,
-          colon: this.props.colon,
         };
       },
       (data, thisReaction) => {
@@ -77,7 +75,6 @@ class Field extends React.Component<FieldPropTypes, null> {
           valueKey: data.valueKey,
           validateRule: data.validateRule,
           ignoreDisplayError: data.ignoreDisplayError,
-          colon: data.colon,
         });
       }
     );
@@ -121,7 +118,6 @@ class Field extends React.Component<FieldPropTypes, null> {
         errorMessage: '',
         disabled: false,    // 默认值为FALSE表明不是禁用状态
         isVisible: true,    // 默认值为TRUE表明是可见的
-        colon: true,        // 默认值为TRUE表明label后是否有冒号
         validateStatus: 'success',
         ignoreDisplayError: this.props.ignoreDisplayError,
         ...info
@@ -218,7 +214,7 @@ class Field extends React.Component<FieldPropTypes, null> {
             required={isRequired}
             label={this.props.label}
             hasFeedback={this.props.hasFeedback}
-            colon={instance.colon}
+            colon={this.props.colon}
             labelCol={this.props.labelCol}
             wrapperCol={this.props.wrapperCol}
           >
