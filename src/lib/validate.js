@@ -104,7 +104,7 @@ function resultValidation(result) {
  * 如果前一个验证规则返回标准的验证失败（standardErrorResult()）的结果，则不会执行后边的验证函数。
  * 如果验证到最后一个还没有返回标准的验证失败结果，也就是说验证规则全部通过了，则需要返回标准的正确验证结果，以保证逻辑上正确。
  *
- * 另外需要增加现在，如果当前组件是disabled为TRUE的情况下，直接resolve()正确验证结果即可，不在进行具体的逻辑验证或者异步验证。
+ * 另外需要注意的是，如果当前组件是disabled为TRUE的情况下，直接resolve()正确验证结果即可，不在进行具体的逻辑验证或者异步验证。
  */
 export function verifyField(stateVerificationRules, formStore, valueKey) {
   return new Promise((resolve, reject) => {
